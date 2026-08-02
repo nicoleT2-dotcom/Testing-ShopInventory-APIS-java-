@@ -4,9 +4,10 @@ import com.cfg_assignment_3.model.Apple;
 import com.cfg_assignment_3.model.AppleRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.cfg_assignment_3.service.AppleService;
+import com.cfg_assignment_3.exceptions.AppleException;
 
 import java.util.List;
 
@@ -17,18 +18,18 @@ public class AppleController {
     @Autowired
     private AppleRepository appleRepository;
 
-    @Value("${shop.name}")
-    private String shopName;
+    @Autowired
+    private AppleService appleService;
 
-    @GetMapping("/shopInventory/fruits/apple/braeburn")
-    public ResponseEntity<List<Apple>> searchApples(@RequestParam String variety){
-        log.info("search apples by variety");
-        log.info("Shop: {}", shopName);
-        List<Apple> results = appleRepository.findByVariety(variety);
-        if (results.isEmpty()) {
-            log.warn("no apples found");
+    @GetMapping("/shopInventory/fruits/apple/search")
+    public ResponseEntity<?> searchApplesByVariety(@RequestParam String variety){
+        try {
+            List<Apple> results = appleService.searchApples(variety);
+            return ResponseEntity.ok(results);
+        } catch (AppleException e) {
+            log.warn("Apple search failed: {}", e.getMessage());
+            return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.ok(results);
     }
 
     @PostMapping("/shopInventory/fruits/apple")
